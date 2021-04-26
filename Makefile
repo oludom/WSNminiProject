@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = WSNminiProject
+CONTIKI_PROJECT = WSNminiProject sweeping_jammer
 all: $(CONTIKI_PROJECT)
 
 MAKE_MAC = MAKE_MAC_NULLMAC
