@@ -57,6 +57,8 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
         LOG_INFO("Sending %u to ", count);
         LOG_INFO_LLADDR(NULL);
         LOG_INFO_("\n");
+        LOG_INFO("Current_channel: %u", cc2420_get_channel());
+        LOG_INFO_("\n");
 
         memcpy(nullnet_buf, &count, sizeof(count));
         nullnet_len = sizeof(count);
