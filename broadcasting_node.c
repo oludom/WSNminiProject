@@ -21,6 +21,7 @@ static unsigned int current_channel = 11;
 static unsigned int msg_timeout_timer = 10;
 static unsigned int channel_map[] = {13, 15, 12, 17, 20, 26};
 static unsigned int channel_count = 0;
+static bool was_ever_connected = false;
 
 #if MAC_CONF_WITH_TSCH
 #include "net/mac/tsch/tsch.h"
@@ -57,7 +58,7 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
   etimer_set(&periodic_timer, SEND_INTERVAL);
   while(1)
   {
-    if(msg_timeout_timer == 0){
+    if((msg_timeout_timer <= 0) && (was_ever_connected)){
       if(channel_count <= 6){
         channel_count += 1;
       } else {
@@ -106,18 +107,20 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
     // THIS IS FOR AUTOMATICALLY SWITCHING TOWARDS A NEWLY SEND CHANNEL MESSAGE
     if(recv_channel != current_channel){
       LOG_INFO("Channel not matching anymore: %u ", recv_channel);
-      if(channel_count <= 6){
-        channel_count += 1;
-      } else {
-        channel_count = 0;
-      }
-      current_channel = channel_map[channel_count];
+      // if(channel_count <= 6){
+      //   channel_count += 1;
+      // } else {
+      //   channel_count = 0;
+      // }
+      // current_channel = channel_map[channel_count];
       LOG_INFO_LLADDR(src);
       LOG_INFO_("\n");
     } else {
       LOG_INFO("Current Channel %u from ", recv_channel);
       LOG_INFO_LLADDR(src);
       LOG_INFO_("\n");
+      msg_timeout_timer = 10;
+      was_ever_connected = true;
     }
   }
 }
