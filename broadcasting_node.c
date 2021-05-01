@@ -19,7 +19,7 @@
 
 static unsigned int current_channel = 11;
 static unsigned int msg_timeout_timer = 10;
-static unsigned int channel_map[] = {11, 15, 12, 17, 20, 26};
+static unsigned int channel_map[] = {13, 15, 12, 17, 20, 26};
 static unsigned int channel_count = 0;
 
 #if MAC_CONF_WITH_TSCH
@@ -58,8 +58,15 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
   while(1)
   {
     if(msg_timeout_timer == 0){
-      LOG_INFO("Switching channel to %u since no new messages received \n", current_channel);
+      if(channel_count <= 6){
+        channel_count += 1;
+      } else {
+        channel_count = 0;
+      }
+      LOG_INFO("Switching channel to %u since no new messages received \n", channel_map[channel_count]);
+      current_channel = channel_map[channel_count];
       cc2420_set_channel(current_channel);
+      msg_timeout_timer = 10;
     }
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
     LOG_INFO("Sending %u to ", current_channel);
@@ -96,6 +103,7 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
   {
     unsigned recv_channel;
     memcpy(&recv_channel, data, sizeof(recv_channel));
+    // THIS IS FOR AUTOMATICALLY SWITCHING TOWARDS A NEWLY SEND CHANNEL MESSAGE
     if(recv_channel != current_channel){
       LOG_INFO("Channel not matching anymore: %u ", recv_channel);
       if(channel_count <= 6){
@@ -110,7 +118,6 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
       LOG_INFO("Current Channel %u from ", recv_channel);
       LOG_INFO_LLADDR(src);
       LOG_INFO_("\n");
-      msg_timeout_timer = 10;
     }
   }
 }
