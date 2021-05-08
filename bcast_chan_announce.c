@@ -32,8 +32,8 @@ static bool update_channel = false;
 
 
 static linkaddr_t mote1_src = {{0x51, 0xf6, 0x6e, 0x14, 0x00, 0x74, 0x12, 0x00}}; // "51f6.6e14.0074.1200";
-static linkaddr_t mote2_src = {{0xb9, 0xce, 0x6e, 0x14, 0x00, 0x74, 0x12, 0x00}};
-
+// static linkaddr_t mote2_src = {{0xb9, 0xce, 0x6e, 0x14, 0x00, 0x74, 0x12, 0x00}};
+static linkaddr_t mote2_src = {{0x46, 0x95, 0x08, 0x15, 0x00, 0x74, 0x12, 0x00}};
 #if MAC_CONF_WITH_TSCH
 #include "net/mac/tsch/tsch.h"
 static linkaddr_t coordinator_addr =  {{0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
@@ -144,7 +144,6 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
 
 
     LOG_INFO_("\n");
-    printf("%d", src[0]);
     if(linkaddr_cmp(src, &mote1_src)){
       msg_timeout_timer1 = 10;
     }
