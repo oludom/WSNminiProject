@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = broadcasting_node
+CONTIKI_PROJECT = broadcasting_node, bcast_chan_announce
 all: $(CONTIKI_PROJECT)
 
 PLATFORMS_EXCLUDE = nrf52dk
