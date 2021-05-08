@@ -28,7 +28,7 @@ static unsigned int channel_count = 0;
 // Search channels and on first join to find the right one channels are
 // currently communicating on.
 static bool search_channels = true;
-static bool update_channel = false;
+static unsigned int update_channel_count = 0;
 
 
 static linkaddr_t mote1_src = {{0x51, 0xf6, 0x6e, 0x14, 0x00, 0x74, 0x12, 0x00}}; // "51f6.6e14.0074.1200";
@@ -68,6 +68,7 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
   nullnet_set_input_callback(input_callback);
 
   etimer_set(&periodic_timer, SEND_INTERVAL);
+
   while(1) {
     // Search on all channels to find active motes
     if(search_channels || msg_timeout_timer1 <= 0 || msg_timeout_timer2 <= 0) {
@@ -81,24 +82,20 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
         } else {
           channel_count = 0;
         }
-    //    current_channel = channel_map[channel_count];
-
-        
-
+       current_channel = channel_map[channel_count];
       }
-
       if(tmp_channel != current_channel){
-        LOG_INFO("Switching channel to %u since no new messages where received \n", current_channel);
-        cc2420_set_channel(current_channel);
-        search_channels = true;
+        LOG_INFO("Advertising new channel(%u) since no new messages where received \n", current_channel);
+        // cc2420_set_channel(current_channel);
+        // search_channels = true;
+        // msg = current_channel;
+        update_channel_count = 3;
       }
     }
-    // WILL NOT WORK LIKE THAT, broadcast channel first
-    if(update_channel) {
 
-      LOG_INFO("Broadcasting new channel one time before switching");
-      current_channel = updated_channel;
-     
+    if(update_channel_count <= 3) {
+      msg = current_channel;
+      update_channel_count -= 1;
     }
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
@@ -107,21 +104,19 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
     LOG_INFO_LLADDR(NULL);
     LOG_INFO_("\n");
 
+
     memcpy(nullnet_buf, &msg, sizeof(msg));
     nullnet_len = sizeof(msg);
 
     NETSTACK_NETWORK.output(NULL);
 
-    if(update_channel) {
-      LOG_INFO("Updating channel to %u", updated_channel);
-  //    cc2420_set_channel(current_channel);
-      update_channel = false;
-    }
-
-    
     msg_timeout_timer1 -= 1;
     msg_timeout_timer2 -= 1;
     etimer_reset(&periodic_timer);
+
+    if(update_channel_count <= 0){
+      cc2420_set_channel(current_channel);
+    }
   }
   PROCESS_END();
 }
@@ -133,13 +128,12 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
     memcpy(&recv_channel, data, sizeof(recv_channel));
     search_channels = false;
     LOG_INFO("Current incoming MSG (Channel Nr:) %u from ", recv_channel);
-    if(recv_channel != current_channel){
-      updated_channel = recv_channel;
-      LOG_INFO("Incoming channel differs from current channel!\n");
-      LOG_INFO("Current channel: %u", current_channel);
-      LOG_INFO("Incoming channel: %u", recv_channel);
-      update_channel = true;
-    }
+    // if(recv_channel != current_channel){
+    //   updated_channel = recv_channel;
+    //   LOG_INFO("Incoming channel differs from current channel!\n");
+    //   LOG_INFO("Current channel: %u", current_channel);
+    //   LOG_INFO("Incoming channel: %u", recv_channel);
+    // }
     LOG_INFO_LLADDR(src);
 
 
