@@ -69,6 +69,7 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
 
   etimer_set(&periodic_timer, SEND_INTERVAL);
 
+  msg = current_channel;
   while(1) {
     // Search on all channels to find active motes
     if(search_channels || msg_timeout_timer1 <= 0 || msg_timeout_timer2 <= 0) {
@@ -99,7 +100,6 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
     }
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-    msg = current_channel;
     LOG_INFO("Sending %u to ", msg);
     LOG_INFO_LLADDR(NULL);
     LOG_INFO_("\n");

@@ -68,27 +68,30 @@ PROCESS_THREAD(dummie_node, ev, data)
   nullnet_len = sizeof(msg_buffer);
   nullnet_set_input_callback(input_callback);
 
+  unsigned int tmp_channel = 11;
+
   etimer_set(&periodic_timer, SEND_INTERVAL);
   while(1) {
 
-    unsigned int tmp_channel = updated_channel; 
     msg = current_channel;
+    LOG_INFO("TMP CHAN:  %u \n", updated_channel);
 
-    if(tmp_channel != current_channel && update_channel_count <= 0){
+    if(tmp_channel != current_channel && update_channel_count >= 0){
         LOG_INFO("Switching channel to %u because new channel received \n", current_channel);
-        msg = tmp_channel;
+        msg = updated_channel;
         update_channel_count -= 1;
       }
+      LOG_INFO("MSG:  %u \n", msg);
      // WILL NOT WORK LIKE THAT, broadcast channel first
   /*  if(update_channel) {
 
       LOG_INFO("Broadcasting new channel one time before switching");
       current_channel = updated_channel;
-     
+
     }*/
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-    
+
     LOG_INFO("Sending %u to ", msg);
     LOG_INFO_LLADDR(NULL);
     LOG_INFO_("\n");
@@ -99,13 +102,11 @@ PROCESS_THREAD(dummie_node, ev, data)
     NETSTACK_NETWORK.output(NULL);
 
     if(update_channel_count <= 0) {
-      LOG_INFO("Updating channel to %u", updated_channel);
-      cc2420_set_channel(current_channel);
+      LOG_INFO("Updating channel to %u\n", updated_channel);
+      cc2420_set_channel(updated_channel);
    //   update_channel = false;
       update_channel_count = 3;
     }
-
-    
     msg_timeout_timer -= 1;
     etimer_reset(&periodic_timer);
   }
@@ -118,19 +119,19 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
     unsigned int recv_channel;
     memcpy(&recv_channel, data, sizeof(recv_channel));
 //    search_channels = false;
-    LOG_INFO("Current incoming MSG (Channel Nr:) %u from ", recv_channel);
+    LOG_INFO("Current incoming MSG (Channel Nr:) %u from\n", recv_channel);
     if(recv_channel != current_channel){
       updated_channel = recv_channel;
       LOG_INFO("Incoming channel differs from current channel!\n");
-      LOG_INFO("Current channel: %u", current_channel);
-      LOG_INFO("Incoming channel: %u", recv_channel);
+      LOG_INFO("Current channel: %u\n", current_channel);
+      LOG_INFO("Incoming channel: %u\n", recv_channel);
   //    update_channel = true;
     }
 
     LOG_INFO_LLADDR(src);
     LOG_INFO_("\n");
     msg_timeout_timer = 10;
-    
+
   }
 }
 /*---------------------------------------------------------------------------*/
