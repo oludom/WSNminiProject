@@ -21,13 +21,18 @@
 static unsigned int msg_buffer = 11;
 static unsigned int current_channel = 11;
 static unsigned int updated_channel = 11;
-static unsigned int msg_timeout_timer = 10;
+static unsigned int msg_timeout_timer1 = 10;
+static unsigned int msg_timeout_timer2 = 10;
 static unsigned int channel_map[] = {11, 13, 16, 12, 17, 20, 26};
 static unsigned int channel_count = 0;
 // Search channels and on first join to find the right one channels are
 // currently communicating on.
 static bool search_channels = true;
 static bool update_channel = false;
+
+
+static linkaddr_t mote1_src = {{0x51, 0xf6, 0x6e, 0x14, 0x00, 0x74, 0x12, 0x00}}; // "51f6.6e14.0074.1200";
+static linkaddr_t mote2_src = {{0xb9, 0xce, 0x6e, 0x14, 0x00, 0x74, 0x12, 0x00}};
 
 #if MAC_CONF_WITH_TSCH
 #include "net/mac/tsch/tsch.h"
@@ -65,27 +70,35 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
   etimer_set(&periodic_timer, SEND_INTERVAL);
   while(1) {
     // Search on all channels to find active motes
-    if(search_channels || msg_timeout_timer == 0) {
-      LOG_INFO("Messages until timeout/channel switch %u \n", msg_timeout_timer);
+    if(search_channels || msg_timeout_timer1 <= 0 || msg_timeout_timer2 <= 0) {
+      LOG_INFO("Messages until timeout/channel switch %u \n", msg_timeout_timer1);
       unsigned int tmp_channel = current_channel;
-      if(msg_timeout_timer <= 0) {
-        msg_timeout_timer = 10;
+      if(msg_timeout_timer1 <= 0 || msg_timeout_timer2 <= 0){
+        msg_timeout_timer1 = 10;
+        msg_timeout_timer2 = 10;
         if(channel_count < 6) {
           channel_count += 1;
         } else {
           channel_count = 0;
         }
-        current_channel = channel_map[channel_count];
+    //    current_channel = channel_map[channel_count];
+
+        
+
       }
+
       if(tmp_channel != current_channel){
         LOG_INFO("Switching channel to %u since no new messages where received \n", current_channel);
         cc2420_set_channel(current_channel);
         search_channels = true;
       }
     }
+    // WILL NOT WORK LIKE THAT, broadcast channel first
     if(update_channel) {
+
       LOG_INFO("Broadcasting new channel one time before switching");
       current_channel = updated_channel;
+     
     }
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
@@ -101,11 +114,13 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
 
     if(update_channel) {
       LOG_INFO("Updating channel to %u", updated_channel);
-      cc2420_set_channel(current_channel);
+  //    cc2420_set_channel(current_channel);
       update_channel = false;
     }
 
-    msg_timeout_timer -= 1;
+    
+    msg_timeout_timer1 -= 1;
+    msg_timeout_timer2 -= 1;
     etimer_reset(&periodic_timer);
   }
   PROCESS_END();
@@ -126,8 +141,16 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
       update_channel = true;
     }
     LOG_INFO_LLADDR(src);
+
+
     LOG_INFO_("\n");
-    msg_timeout_timer = 10;
+    printf("%d", src[0]);
+    if(linkaddr_cmp(src, &mote1_src)){
+      msg_timeout_timer1 = 10;
+    }
+    if(linkaddr_cmp(src, &mote2_src)) {
+      msg_timeout_timer2 = 10;
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
