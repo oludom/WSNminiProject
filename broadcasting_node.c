@@ -19,7 +19,7 @@
 
 // hacky workaround for c pointer stuff. Should be same as current_channel.
 static unsigned int msg_buffer = 11;
-static unsigned int current_channel = 11;
+static unsigned int current_channel = 20;
 static unsigned int msg_timeout_timer = 10;
 static unsigned int channel_map[] = {11, 13, 16, 12, 17, 20, 26};
 static unsigned int channel_count = 0;

@@ -65,7 +65,7 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
   etimer_set(&periodic_timer, SEND_INTERVAL);
   while(1) {
     // Search on all channels to find active motes
-    if(search_channels || msg_timeout_timer == 0) {
+    if(search_channels || msg_timeout_timer <= 0) {
       LOG_INFO("Messages until timeout/channel switch %u \n", msg_timeout_timer);
       unsigned int tmp_channel = current_channel;
       if(msg_timeout_timer <= 0) {
@@ -83,6 +83,7 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
         search_channels = true;
       }
     }
+    // WILL NOT WORK LIKE THAT, broadcast channel first
     if(update_channel) {
       LOG_INFO("Broadcasting new channel one time before switching");
       current_channel = updated_channel;
