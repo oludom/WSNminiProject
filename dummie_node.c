@@ -11,7 +11,7 @@
 #include <string.h>
 
 #include "sys/log.h"
-#define LOG_MODULE "broadcasting_node"
+#define LOG_MODULE "dummie_node"
 #define LOG_LEVEL LOG_LEVEL_DBG
 
 /*---------------------------------------------------------------------------*/
@@ -46,7 +46,7 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
 
 /*---------------------------------------------------------------------------*/
 PROCESS(dummie_node, "dummie node");
-AUTOSTART_PROCESSES(&broadcasting_node_process);
+AUTOSTART_PROCESSES(&dummie_node);
 
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(dummie_node, ev, data)
