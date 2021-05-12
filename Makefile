@@ -1,6 +1,8 @@
 CONTIKI_PROJECT = broadcasting_node bcast_chan_announce
 all: $(CONTIKI_PROJECT)
 
+PROJECT_SOURCEFILES=shared.c
+
 PLATFORMS_EXCLUDE = nrf52dk
 
 #MAKE_MAC = MAKE_MAC_TSCH
