@@ -77,16 +77,17 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
   if(len == sizeof(unsigned)) {
     unsigned int recv_channel;
     memcpy(&recv_channel, data, sizeof(recv_channel));
-    LOG_INFO("Current incoming MSG (Channel Nr:) %u from\n", recv_channel);
+    LOG_INFO("Current incoming MSG (Channel Nr:) %u from", recv_channel);
+    LOG_INFO_LLADDR(src);
+    LOG_INFO_("\n");
+
     if(recv_channel != CURRENT_CHANNEL){
       LOG_INFO("Incoming channel differs from current channel!\n");
       LOG_INFO("Incoming channel: %u\n", recv_channel);
       set_current_channel(recv_channel);
       update_channel_count = 3;
     }
-
-    LOG_INFO_LLADDR(src);
-    LOG_INFO_("\n");
+    
     msg_error_counter = 10;
 
   }
