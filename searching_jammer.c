@@ -5,10 +5,10 @@
 
 #include <stdio.h>
 
-PROCESS(sweeping_jammer, "jammer");
-AUTOSTART_PROCESSES(&sweeping_jammer);
+PROCESS(searching_jammer, "jammer");
+AUTOSTART_PROCESSES(&searching_jammer);
 
-#define NUMBER_CHANNELS 8
+#define NUMBER_CHANNELS 16
 
 int avg(int values[], int length){
   int i, retVal = 0; 
@@ -19,7 +19,7 @@ int avg(int values[], int length){
 }
 
 
-PROCESS_THREAD(sweeping_jammer, ev, data)
+PROCESS_THREAD(searching_jammer, ev, data)
 {
 
     static struct etimer timer;
@@ -32,7 +32,7 @@ PROCESS_THREAD(sweeping_jammer, ev, data)
 
     PROCESS_BEGIN();
     NETSTACK_RADIO.init();
-    etimer_set(&timer, (32)); // 1/4s time interval
+    etimer_set(&timer, (4)); // 1/4s time interval
 
 
     // set channel
@@ -48,32 +48,32 @@ PROCESS_THREAD(sweeping_jammer, ev, data)
 
         leds_toggle(LEDS_GREEN);
 
-        if(i<32){
+        if(i<64){
             // sense
             NETSTACK_RADIO.get_value(RADIO_PARAM_RSSI, &value);
 
             printf("channel: %d; rssi param: %d\n", channelNumber, (int) value);
-            rssivalues[(int)((channelNumber-11)/2)][i%4] = (int)value;
+            rssivalues[(int)((channelNumber-11))][i%4] = (int)value;
 
             j++;
             if(j>3){
                 
                 // calc average
-                int a = avg(rssivalues[(int)((channelNumber-11)/2)], 4);
+                int a = avg(rssivalues[(int)((channelNumber-11))], 4);
                 if (a > minChannelValue){
                     minChannelValue = a;
                     minChannelNumber = channelNumber;
                     printf("average: %d; channel: %d\n", a, minChannelNumber);
                 }
 
-                channelNumber +=2;
+                channelNumber +=1;
                 j = 0;
                 // set channel
                 NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, (radio_value_t) channelNumber);
             }
 
         }
-        else if (i==32){
+        else if (i==64){
             // set channel
             printf("set channel to %d\n", minChannelNumber);
             NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, (radio_value_t) minChannelNumber);
@@ -88,7 +88,7 @@ PROCESS_THREAD(sweeping_jammer, ev, data)
             printf("carrier on.\n");
         }
         i++;
-        if(i>=272){
+        if(i>=304){
             i = 0;
             channelNumber = 11;
         }
