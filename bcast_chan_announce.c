@@ -61,7 +61,7 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
     LOG_INFO("Sending current channel '%u' to ", CURRENT_CHANNEL);
     LOG_INFO_LLADDR(NULL);
-    LOG_INFO_("\n");
+    LOG_INFO_(" on channel %u\n", cc2420_get_channel());
 
     nullnet_sendcurrentchannel();
 
