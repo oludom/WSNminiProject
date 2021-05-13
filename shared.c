@@ -23,6 +23,7 @@ void nullnet_sendcurrentchannel(void){
     memcpy(nullnet_buf, &CURRENT_CHANNEL, sizeof(CURRENT_CHANNEL));
     nullnet_len = sizeof(CURRENT_CHANNEL);
     NETSTACK_NETWORK.output(NULL);
+    printf(".\n");
 }
 
 void increase_channel_index(void){

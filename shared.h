@@ -14,7 +14,7 @@
 #include <math.h>
 #include <string.h>
 
-#define SEND_INTERVAL (4 * CLOCK_SECOND)
+#define SEND_INTERVAL (2)
 #define CURRENT_CHANNEL channel_map[current_channel_index]
 #define MAX_CHANNEL_INDEX 6
 #define MAX_MESSAGE_ERROR_COUNT 10
