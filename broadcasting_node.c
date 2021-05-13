@@ -14,12 +14,13 @@
 #define LOG_MODULE "broadcasting_node"
 #define LOG_LEVEL LOG_LEVEL_DBG
 
+
 /*---------------------------------------------------------------------------*/
 #define SEND_INTERVAL (8 * CLOCK_SECOND)
 
 #if MAC_CONF_WITH_TSCH
 #include "net/mac/tsch/tsch.h"
-static linkaddr_t coordinator_addr =  {{ 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }};
+static linkaddr_t coordinator_addr =  {{ 0x01, 0x01, 0x01, 0x00, 0x01, 0x74, 0x12, 0x00 }};
 #endif /* MAC_CONF_WITH_TSCH */
 
 /*---------------------------------------------------------------------------*/
@@ -38,11 +39,13 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
 
     PROCESS_BEGIN();
 
-    cc2420_set_channel(11);
-
     #if MAC_CONF_WITH_TSCH
     tsch_set_coordinator(linkaddr_cmp(&coordinator_addr, &linkaddr_node_addr));
     #endif /* MAC_CONF_WITH_TSCH */
+
+    /* Initialize and start TSCH */
+    NETSTACK_MAC.init();
+    NETSTACK_MAC.on();
 
     /* Initialize NullNet */
     nullnet_buf = (uint8_t *)&count;
@@ -50,6 +53,7 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
     nullnet_set_input_callback(input_callback);
 
     etimer_set(&periodic_timer, SEND_INTERVAL);
+
     while(1)
     {
 
