@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = broadcasting_node bcast_chan_announce
+CONTIKI_PROJECT = master slave constant_jammer searching_jammer
 all: $(CONTIKI_PROJECT)
 
 PROJECT_SOURCEFILES=shared.c

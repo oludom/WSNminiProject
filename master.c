@@ -3,12 +3,12 @@
 #include "shared.h"
 
 #include "sys/log.h"
-#define LOG_MODULE "broadcasting_node"
+#define LOG_MODULE "bcast_master"
 #define LOG_LEVEL LOG_LEVEL_DBG
 
 
-static unsigned int msg_error_counter = MAX_MESSAGE_ERROR_COUNT;
-static bool search_channels = true;
+static unsigned int msg_error_counter1 = MAX_MESSAGE_ERROR_COUNT;
+static unsigned int msg_error_counter2 = MAX_MESSAGE_ERROR_COUNT;
 
 static unsigned int update_channel_count = 0;
 
@@ -32,16 +32,19 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
 
   while(1) {
     // Search on all channels to find active motes
-    if(search_channels || msg_error_counter <= 0) {
-      LOG_INFO("Messages until timeout/channel switch %u \n", msg_error_counter);
-      if(msg_error_counter <= 0) {
-        msg_error_counter = MAX_MESSAGE_ERROR_COUNT;
-        increase_channel_index();
+    // if any of the two message error counters have expired
+    if(msg_error_counter1 <= 0 || msg_error_counter2 <= 0) {
+      // LOG_INFO("Messages until timeout/channel switch %u \n", msg_error_counter1);
 
-        LOG_INFO("Switching channel to %u since no new messages where received \n", CURRENT_CHANNEL);
-        cc2420_set_channel(CURRENT_CHANNEL);
-      }
-      msg_error_counter -= 1;
+      // reset timers
+      msg_error_counter1 = MAX_MESSAGE_ERROR_COUNT;
+      msg_error_counter2 = MAX_MESSAGE_ERROR_COUNT;
+      
+      // change channel
+      increase_channel_index();
+
+      LOG_INFO("Advertising new channel(%u) since no new messages where received \n", CURRENT_CHANNEL);
+      update_channel_count = 3;
     }
 
     if(update_channel_count > 0 && update_channel_count <= 3) {
@@ -56,14 +59,14 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
     }
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-    LOG_INFO("Sending current channel '%u' to ", CURRENT_CHANNEL);
-    LOG_INFO_LLADDR(NULL);
-    LOG_INFO_(" on channel %u\n", cc2420_get_channel());
+    // LOG_INFO("Sending current channel '%u'", CURRENT_CHANNEL);
+    // LOG_INFO_(" on channel %u\n", cc2420_get_channel());
 
     nullnet_sendcurrentchannel();
 
     // decrement error counter
-    msg_error_counter -= 1;
+    msg_error_counter1 -= 1;
+    msg_error_counter2 -= 1;
 
     // reset timer
     etimer_reset(&periodic_timer);
@@ -77,19 +80,18 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
   if(len == sizeof(unsigned)) {
     unsigned int recv_channel;
     memcpy(&recv_channel, data, sizeof(recv_channel));
-    LOG_INFO("Current incoming MSG (Channel Nr:) %u from", recv_channel);
-    LOG_INFO_LLADDR(src);
-    LOG_INFO_("\n");
+    // LOG_INFO("Current incoming MSG (Channel Nr:) %u from ", recv_channel);
+    // LOG_INFO_LLADDR(src);
+    // LOG_INFO_("\n");
 
-    if(recv_channel != CURRENT_CHANNEL){
-      LOG_INFO("Incoming channel differs from current channel!\n");
-      LOG_INFO("Incoming channel: %u\n", recv_channel);
-      set_current_channel(recv_channel);
-      update_channel_count = 3;
+    if(linkaddr_cmp(src, &mote1_src)){
+      // LOG_INFO("Message from Jonas\n");
+      msg_error_counter1 = 10;
     }
-    
-    msg_error_counter = 10;
-
+    if(linkaddr_cmp(src, &mote2_src)) {
+      // LOG_INFO("Message from Marta\n");
+      msg_error_counter2 = 10;
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
