@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = master slave constant_jammer searching_jammer
+CONTIKI_PROJECT = master slave constant_jammer searching_jammer sweeping_jammer
 all: $(CONTIKI_PROJECT)
 
 PROJECT_SOURCEFILES=shared.c
