@@ -2,7 +2,7 @@
 #include "shared.h"
 
 
-unsigned int msg_buffer = 11;
+unsigned int msg_buffer[3] = {0};
 
 const unsigned int channel_map[] = {11, 13, 16, 12, 17, 20, 26};
 unsigned int current_channel_index = 0;
@@ -14,8 +14,8 @@ const linkaddr_t mote2_src = {{0xea, 0x9a, 0x08, 0x15, 0x00, 0x74, 0x12, 0x00}};
 
 /* Initialize NullNet */
 void nullnet_init(void){
-    nullnet_buf = (uint8_t *)&msg_buffer;
-    nullnet_len = sizeof(msg_buffer);
+    nullnet_buf = (uint8_t *)&msg_buffer[0];
+    nullnet_len = sizeof(msg_buffer[0]);
     nullnet_set_input_callback(input_callback);
 }
 
