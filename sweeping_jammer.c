@@ -23,23 +23,24 @@ PROCESS_THREAD(sweeping_jammer, ev, data)
     // set channel power
     NETSTACK_RADIO.set_value(RADIO_PARAM_TXPOWER, txpower);
 
-    etimer_set(&timer, (10));
+    etimer_set(&timer, CLOCK_SECOND * 15);
 
     while(1) {
-        leds_toggle(LEDS_GREEN);
 
         for(channel = 11; channel <= 26; channel++)
         {
+            leds_toggle(LEDS_GREEN);
             NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, channel);
 
-            // carrier frequency strobe
-            NETSTACK_RADIO.set_value(RADIO_PARAM_POWER_MODE, RADIO_POWER_MODE_CARRIER_ON);
-            printf("carrier on.\n");
+            etimer_reset(&timer);
+            while(!etimer_expired(&timer))
+            {
+                // carrier frequency strobe
+                NETSTACK_RADIO.set_value(RADIO_PARAM_POWER_MODE, RADIO_POWER_MODE_CARRIER_ON);
+                printf("carrier on.\n");
+            }
         }
 
-        // wait for timer
-        PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
-        etimer_reset(&timer);
     }
 
     PROCESS_END();
