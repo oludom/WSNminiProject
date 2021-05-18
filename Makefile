@@ -1,7 +1,12 @@
-CONTIKI_PROJECT = WSNminiProject sweeping_jammer
+CONTIKI_PROJECT = master slave constant_jammer searching_jammer sweeping_jammer
 all: $(CONTIKI_PROJECT)
 
-MAKE_MAC = MAKE_MAC_NULLMAC
+PROJECT_SOURCEFILES=shared.c
+
+PLATFORMS_EXCLUDE = nrf52dk
+
+#MAKE_MAC = MAKE_MAC_TSCH
+MAKE_MAC = MAKE_MAC_CSMA
 MAKE_NET = MAKE_NET_NULLNET
 
 WERROR = 0
