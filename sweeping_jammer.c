@@ -32,13 +32,14 @@ PROCESS_THREAD(sweeping_jammer, ev, data)
             leds_toggle(LEDS_GREEN);
             NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, channel);
 
-            etimer_reset(&timer);
             while(!etimer_expired(&timer))
             {
                 // carrier frequency strobe
                 NETSTACK_RADIO.set_value(RADIO_PARAM_POWER_MODE, RADIO_POWER_MODE_CARRIER_ON);
                 printf("carrier on.\n");
             }
+
+            etimer_reset(&timer);
         }
 
     }
