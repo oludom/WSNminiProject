@@ -1,4 +1,10 @@
+
+#include "sys/log.h"
+#define LOG_MODULE "sweeping jammer"
+#define LOG_LEVEL LOG_LEVEL_DBG
+
 #include "contiki.h"
+#include "shared.h"
 
 #include "os/net/netstack.h"
 #include "dev/leds.h"
@@ -14,7 +20,7 @@ PROCESS_THREAD(sweeping_jammer, ev, data)
 {
 
     static struct etimer timer;
-    static int channel, txpower = -25;
+    static int txpower = -25;
 
     PROCESS_BEGIN();
     NETSTACK_RADIO.init();
@@ -23,25 +29,22 @@ PROCESS_THREAD(sweeping_jammer, ev, data)
     // set channel power
     NETSTACK_RADIO.set_value(RADIO_PARAM_TXPOWER, txpower);
 
-    etimer_set(&timer, CLOCK_SECOND * 15);
+    etimer_set(&timer, CLOCK_SECOND * 1);
 
     while(1) {
+        NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, CURRENT_CHANNEL);
+        leds_toggle(LEDS_GREEN);
 
-        for(channel = 11; channel <= 26; channel++)
+        LOG_INFO("Jamming channel %d\n",CURRENT_CHANNEL);
+        while(!etimer_expired(&timer))
         {
-            leds_toggle(LEDS_GREEN);
-            NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, channel);
-
-            while(!etimer_expired(&timer))
-            {
-                // carrier frequency strobe
-                NETSTACK_RADIO.set_value(RADIO_PARAM_POWER_MODE, RADIO_POWER_MODE_CARRIER_ON);
-                printf("carrier on.\n");
-            }
-
-            etimer_reset(&timer);
+            // carrier frequency strobe
+            NETSTACK_RADIO.set_value(RADIO_PARAM_POWER_MODE, RADIO_POWER_MODE_CARRIER_ON);
+            PROCESS_PAUSE();
         }
 
+        increase_channel_index();
+        etimer_reset(&timer);
     }
 
     PROCESS_END();
