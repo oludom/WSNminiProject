@@ -49,7 +49,7 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
     }else 
     // if countdown to channel switch is over
     if (update_channel_count <= 0){
-      LOG_INFO("Switching channel to advertised number.\n");
+      LOG_INFO("Switching channel to advertised number: %u.\n", CURRENT_CHANNEL);
       cc2420_set_channel(CURRENT_CHANNEL);
       // stop channel change
       update_channel_count = 5;

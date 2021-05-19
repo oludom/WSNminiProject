@@ -35,6 +35,14 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
     // if any of the two message error counters have expired
     if(msg_error_counter1 <= 0 || msg_error_counter2 <= 0) {
       // LOG_INFO("Messages until timeout/channel switch %u \n", msg_error_counter1);
+        if(msg_error_counter1 <= 0)
+        {
+            LOG_INFO("Mote1 timed out.\n");
+        }
+        else
+        {
+            LOG_INFO("Mote2 timed out.\n");
+        }
 
       // reset timers
       msg_error_counter1 = MAX_MESSAGE_ERROR_COUNT;
@@ -52,7 +60,7 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
     }else 
     // if countdown to channel switch is over
     if (update_channel_count <= 0){
-      LOG_INFO("Switching channel to advertised number.\n");
+      LOG_INFO("Switching channel to advertised number: %u.\n", CURRENT_CHANNEL);
       cc2420_set_channel(CURRENT_CHANNEL);
       // stop channel change
       update_channel_count = 5;
