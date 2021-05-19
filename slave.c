@@ -13,6 +13,7 @@ static bool search_channels = true;
 static unsigned int update_channel_count = 0;
 static unsigned int message_count_master = 0;
 static unsigned int message_count_slave = 0;
+static bool master_update = false;
 
 
 PROCESS(broadcasting_node_process, "broadcasting process");
@@ -55,6 +56,7 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
       cc2420_set_channel(CURRENT_CHANNEL);
       // stop channel change
       update_channel_count = 5;
+      master_update = false;
     }
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
@@ -87,14 +89,16 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
         LOG_INFO("Incoming channel (different): %u from Master {", recv_channel);
         LOG_INFO_LLADDR(src);
         LOG_INFO_("}\n");
-      } else {
+        set_current_channel(recv_channel);
+        master_update = true;
+      } else if (!master_update){
         LOG_INFO("Incoming channel (different): %u from slave {", recv_channel);
         LOG_INFO_LLADDR(src);
         LOG_INFO_("}\n");
+        set_current_channel(recv_channel);
       }
       // LOG_INFO("Incoming channel differs from current channel!\n");
-      LOG_INFO("Incoming channel (different): %u\n", recv_channel);
-      set_current_channel(recv_channel);
+      // LOG_INFO("Incoming channel (different): %u\n", recv_channel);
       update_channel_count = 3;
     }
     if(linkaddr_cmp(src, &master_src)){
