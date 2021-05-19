@@ -83,6 +83,15 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
     // LOG_INFO_("\n");
 
     if(recv_channel != CURRENT_CHANNEL) {
+      if(linkaddr_cmp(src, &master_src)){
+        LOG_INFO("Incoming channel (different): %u from Master {", recv_channel);
+        LOG_INFO_LLADDR(src);
+        LOG_INFO_("}\n");
+      } else {
+        LOG_INFO("Incoming channel (different): %u from slave {", recv_channel);
+        LOG_INFO_LLADDR(src);
+        LOG_INFO_("}\n");
+      }
       // LOG_INFO("Incoming channel differs from current channel!\n");
       LOG_INFO("Incoming channel (different): %u\n", recv_channel);
       set_current_channel(recv_channel);
@@ -91,7 +100,7 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
     if(linkaddr_cmp(src, &master_src)){
       if(message_count_master >= 10) {
         message_count_master = 0;
-        LOG_INFO("10 messages received from the Master {");
+        LOG_INFO("10 messages received from Master {");
         LOG_INFO_LLADDR(src);
         LOG_INFO_("}\n");
       }
