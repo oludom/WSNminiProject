@@ -27,6 +27,7 @@ extern unsigned int current_channel_index;
 
 extern const linkaddr_t mote1_src;
 extern const linkaddr_t mote2_src;
+extern const linkaddr_t master_src;
 
 
 void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const linkaddr_t *dest);
