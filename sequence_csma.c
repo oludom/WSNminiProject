@@ -49,7 +49,7 @@ PROCESS_THREAD(sequence_process, ev, data)
     // Search on all channels to find active motes
     if(search_channels <= 0) {
 
-        search_channels = random_rand() % 10 + 2;
+        search_channels = 3;//random_rand() % 10 + 2;
         increase_channel_index();
 
         LOG_INFO("Switching channel to %u since no new messages where received \n", CURRENT_CHANNEL);
@@ -91,15 +91,17 @@ PROCESS_THREAD(sequence_process, ev, data)
 /*---------------------------------------------------------------------------*/
 void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const linkaddr_t *dest) {
     // check message length
+    LOG_INFO("received\n");
     if(len == sizeof(message_format_t)) {
         unsigned int recv_counter;
         unsigned int recv_channel; 
-        message_format_t * msg_ptr = (message_format_t*)data;
-
+        message_format_t msg_ptr;
+        memcpy(&msg_ptr, data, 8);
+        LOG_INFO("right size\n");
         // check if message contains separator
-        if(msg_ptr->separator == MESSAGE_SEPARATOR){
-            recv_channel = msg_ptr->channel;
-            recv_counter = msg_ptr->count;
+        if(msg_ptr.separator == MESSAGE_SEPARATOR){
+            recv_channel = msg_ptr.channel;
+            recv_counter = msg_ptr.count;
             LOG_INFO("Current incoming MSG (counter) %u on channel %d from", recv_counter, recv_channel);
             LOG_INFO_LLADDR(src);
             LOG_INFO_("\n");
@@ -123,13 +125,16 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
 send current counter value and current channel as broadcast message over nullnet
 */
 void nullnet_sendcurrentcounter(void){
-    message_format_t * temp_message = (message_format_t*) nullnet_buf;
+    message_format_t temp_message;
+
     LOG_INFO("sending counter %d on channel %d \n", CURRENT_COUNT, cc2420_get_channel());
     
     // write to nullnet buffer
-    temp_message->channel = CURRENT_CHANNEL;
-    temp_message->separator = MESSAGE_SEPARATOR;
-    temp_message->count = CURRENT_COUNT;
+    temp_message.channel = CURRENT_CHANNEL;
+    temp_message.separator = MESSAGE_SEPARATOR;
+    temp_message.count = CURRENT_COUNT;
+
+    memcpy((void*)nullnet_buf, &temp_message, 8);
 
     // set length to message struct
     nullnet_len = sizeof(message_format_t);
