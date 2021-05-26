@@ -1,7 +1,7 @@
 CONTIKI_PROJECT = master slave constant_jammer searching_jammer sweeping_jammer sequence_csma reset_sequence_csma
 all: $(CONTIKI_PROJECT)
 
-PROJECT_SOURCEFILES=shared.c
+PROJECT_SOURCEFILES=shared.c jshared.c
 
 PLATFORMS_EXCLUDE = nrf52dk
 

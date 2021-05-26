@@ -3,6 +3,8 @@
 #include "os/net/netstack.h"
 #include "dev/leds.h"
 
+#include "jshared.h"
+
 #include <stdio.h>
 
 PROCESS(searching_jammer, "jammer");
@@ -32,19 +34,13 @@ PROCESS_THREAD(searching_jammer, ev, data)
 
     PROCESS_BEGIN();
     NETSTACK_RADIO.init();
-    etimer_set(&timer, (4)); // 1/4s time interval
-
-
-    // set channel
-    NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, (radio_value_t) channelNumber);
+    etimer_set(&timer, (8));
 
     while(1) {
 
         // wait for timer
         PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
         etimer_reset(&timer);
-
-        // NETSTACK_RADIO.get_value(RADIO_PARAM_RSSI, &value);
 
         leds_toggle(LEDS_GREEN);
 
@@ -84,13 +80,14 @@ PROCESS_THREAD(searching_jammer, ev, data)
 
             // jam 
 
-            NETSTACK_RADIO.set_value(RADIO_PARAM_POWER_MODE, RADIO_POWER_MODE_CARRIER_ON);
-            printf("carrier on.\n");
+            start_jam_loop(0);
         }
         i++;
+        // reset state machine
         if(i>=304){
             i = 0;
             channelNumber = 11;
+            stop_jam_loop();
         }
 
     }
