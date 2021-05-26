@@ -11,7 +11,8 @@ static unsigned int msg_error_counter1 = MAX_MESSAGE_ERROR_COUNT;
 static unsigned int msg_error_counter2 = MAX_MESSAGE_ERROR_COUNT;
 
 static unsigned int update_channel_count = 0;
-
+static unsigned int message_count_mote1 = 0;
+static unsigned int message_count_mote2 = 0;
 
 PROCESS(broadcasting_node_process, "broadcasting process");
 AUTOSTART_PROCESSES(&broadcasting_node_process);
@@ -35,6 +36,14 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
     // if any of the two message error counters have expired
     if(msg_error_counter1 <= 0 || msg_error_counter2 <= 0) {
       // LOG_INFO("Messages until timeout/channel switch %u \n", msg_error_counter1);
+        if(msg_error_counter1 <= 0)
+        {
+            LOG_INFO("Mote1 timed out.\n");
+        }
+        else
+        {
+            LOG_INFO("Mote2 timed out.\n");
+        }
 
       // reset timers
       msg_error_counter1 = MAX_MESSAGE_ERROR_COUNT;
@@ -52,7 +61,7 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
     }else 
     // if countdown to channel switch is over
     if (update_channel_count <= 0){
-      LOG_INFO("Switching channel to advertised number.\n");
+      LOG_INFO("Switching channel to advertised number: %u.\n", CURRENT_CHANNEL);
       cc2420_set_channel(CURRENT_CHANNEL);
       // stop channel change
       update_channel_count = 5;
@@ -85,11 +94,25 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
     // LOG_INFO_("\n");
 
     if(linkaddr_cmp(src, &mote1_src)){
-      // LOG_INFO("Message from Jonas\n");
+      if(message_count_mote1 >= 10)
+      {
+        message_count_mote1 = 0;
+        LOG_INFO("10 messages received from slave1 {");
+        LOG_INFO_LLADDR(src);
+        LOG_INFO_("}\n");
+      }
+      message_count_mote1++;
       msg_error_counter1 = 10;
     }
     if(linkaddr_cmp(src, &mote2_src)) {
-      // LOG_INFO("Message from Marta\n");
+      if(message_count_mote2 >= 10)
+      {
+        message_count_mote2 = 0;
+        LOG_INFO("10 messages received from slave2 {");
+        LOG_INFO_LLADDR(src);
+        LOG_INFO_("}\n");
+      }
+      message_count_mote2++;
       msg_error_counter2 = 10;
     }
   }

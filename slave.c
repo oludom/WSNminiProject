@@ -11,6 +11,9 @@ static unsigned int msg_error_counter = MAX_MESSAGE_ERROR_COUNT;
 static bool search_channels = true;
 
 static unsigned int update_channel_count = 0;
+static unsigned int message_count_master = 0;
+static unsigned int message_count_slave = 0;
+static bool master_update = false;
 
 
 PROCESS(broadcasting_node_process, "broadcasting process");
@@ -49,10 +52,11 @@ PROCESS_THREAD(broadcasting_node_process, ev, data)
     }else 
     // if countdown to channel switch is over
     if (update_channel_count <= 0){
-      LOG_INFO("Switching channel to advertised number.\n");
+      LOG_INFO("Switching channel to advertised number: %u.\n", CURRENT_CHANNEL);
       cc2420_set_channel(CURRENT_CHANNEL);
       // stop channel change
       update_channel_count = 5;
+      master_update = false;
     }
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
@@ -80,13 +84,41 @@ void input_callback(const void *data, uint16_t len, const linkaddr_t *src, const
     // LOG_INFO_LLADDR(src);
     // LOG_INFO_("\n");
 
-    if(recv_channel != CURRENT_CHANNEL){
+    if(recv_channel != CURRENT_CHANNEL) {
+      if(linkaddr_cmp(src, &master_src)){
+        LOG_INFO("Incoming channel (different): %u from Master {", recv_channel);
+        LOG_INFO_LLADDR(src);
+        LOG_INFO_("}\n");
+        set_current_channel(recv_channel);
+        master_update = true;
+      } else if (!master_update){
+        LOG_INFO("Incoming channel (different): %u from slave {", recv_channel);
+        LOG_INFO_LLADDR(src);
+        LOG_INFO_("}\n");
+        set_current_channel(recv_channel);
+      }
       // LOG_INFO("Incoming channel differs from current channel!\n");
-      LOG_INFO("Incoming channel (different): %u\n", recv_channel);
-      set_current_channel(recv_channel);
+      // LOG_INFO("Incoming channel (different): %u\n", recv_channel);
       update_channel_count = 3;
     }
-
+    if(linkaddr_cmp(src, &master_src)){
+      if(message_count_master >= 10) {
+        message_count_master = 0;
+        LOG_INFO("10 messages received from Master {");
+        LOG_INFO_LLADDR(src);
+        LOG_INFO_("}\n");
+      }
+      message_count_master++;
+    }
+    else {
+      if(message_count_slave >= 10) {
+        message_count_slave = 0;
+        LOG_INFO("10 messages received from slave: {");
+        LOG_INFO_LLADDR(src);
+        LOG_INFO_("}\n");
+      }
+      message_count_slave++;
+    }
     msg_error_counter = 10;
 
   }
