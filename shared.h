@@ -14,12 +14,13 @@
 #include <math.h>
 #include <string.h>
 
+
 #define SEND_INTERVAL (128)
 #define CURRENT_CHANNEL channel_map[current_channel_index]
 #define MAX_CHANNEL_INDEX 6
 #define MAX_MESSAGE_ERROR_COUNT 10
 
-extern unsigned int msg_buffer;
+extern unsigned int msg_buffer[];
 extern unsigned int updated_channel;
 
 extern const unsigned int channel_map[];
