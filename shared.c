@@ -4,7 +4,7 @@
 
 unsigned int msg_buffer[3] = {0};
 
-const unsigned int channel_map[] = {11, 13, 16, 12, 17, 20, 26};
+const unsigned int channel_map[] = {11, 24, 18, 22, 13, 16, 12, 19, 23, 17, 20, 15, 26, 14, 21, 25};
 unsigned int current_channel_index = 0;
 
 const linkaddr_t master_src = {{0x2f, 0x96, 0x08, 0x15, 0x00, 0x74, 0x12, 0x00}}; // "2f96.0815.0074.1200" Master node (Balazs);

@@ -49,7 +49,7 @@ PROCESS_THREAD(sequence_process, ev, data)
     // Search on all channels to find active motes
     if(search_channels <= 0) {
 
-        search_channels = 3;//random_rand() % 10 + 2;
+        search_channels = 3;/
         increase_channel_index();
 
         LOG_INFO("Switching channel to %u since no new messages where received \n", CURRENT_CHANNEL);

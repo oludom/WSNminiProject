@@ -34,7 +34,7 @@ PROCESS_THREAD(searching_jammer, ev, data)
 
     PROCESS_BEGIN();
     NETSTACK_RADIO.init();
-    etimer_set(&timer, (8));
+    etimer_set(&timer, (32));
 
     while(1) {
 
